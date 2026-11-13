@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>TAMIM RUN: Shoe Escape! (তামিম ও জুতোর তাড়া)</title>
+  <meta name="description" content="A hilarious 2D arcade runner where Tamim runs for his life while Mom (Hasina) chases him with flying slippers! Collect Biryani, Wi-Fi Routers, and dodge obstacles!">
+  <meta name="theme-color" content="#ff3366">
+
+  <!-- Open Graph for sharing on Social Media / GitHub Pages -->
+  <meta property="og:title" content="TAMIM RUN: Shoe Escape! (তামিম ও জুতোর তাড়া)">
+  <meta property="og:description" content="আম্মুর উড়ন্ত জুতো থেকে বাঁচতে পারবে তো তামিম? এখনই খেলুন!">
+  <meta property="og:type" content="game">
+
+  <!-- Google Fonts: Hind Siliguri (Bengali), Fredoka (Comic UI), Press Start 2P (Retro Arcade) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;900&family=Hind+Siliguri:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-wrapper">
+    <!-- Main Game Canvas Container -->
+    <div id="canvas-container">
+      <canvas id="gameCanvas" width="960" height="540"></canvas>
+
+      <!-- In-Game Heads-Up Display (HUD) -->
+      <div id="hud" class="ui-layer hidden">
+        <div class="hud-top-bar">
+          <!-- Left: Lives / Panic Meter -->
+          <div class="hud-item hud-lives" id="hudLivesContainer">
+            <span class="hud-label">জীবন (HP):</span>
+            <div id="lives-icons" class="lives-display">
+              <span class="slipper-heart" id="hp-1">🥿</span>
+              <span class="slipper-heart" id="hp-2">🥿</span>
+              <span class="slipper-heart" id="hp-3">🥿</span>
+            </div>
+          </div>
+
+          <!-- Center: Ammu Proximity Meter -->
+          <div class="hud-item hud-ammu-meter">
+            <div class="ammu-meter-label">
+              <span>আম্মুর দূরত্ব:</span>
+              <span id="ammu-distance-text" class="status-warning">ধরা পড়ার ঝুঁকি!</span>
+            </div>
+            <div class="ammu-bar-track">
+              <div id="ammu-bar-fill" class="ammu-bar-fill"></div>
+              <div id="ammu-avatar-pin" class="ammu-avatar-pin">🧕</div>
+              <div id="tamim-avatar-pin" class="tamim-avatar-pin">🏃</div>
+            </div>
+          </div>
+
+          <!-- Right: Distance & Taka Counter -->
+          <div class="hud-item hud-scores">
+            <div class="score-pill">
+              <span class="score-icon">🏃</span>
+              <span id="distance-val">0</span> <small>মি.</small>
+            </div>
+            <div class="score-pill coin-pill">
+              <span class="score-icon">🪙</span>
+              <span id="coin-val">0</span>
+            </div>
+          </div>
+
+          <!-- Utility buttons: Sound & Pause -->
+          <div class="hud-controls">
+            <button id="btn-sound-toggle" class="icon-btn" title="সাউন্ড অন/অফ" aria-label="Toggle Sound">🔊</button>
+            <button id="btn-pause" class="icon-btn" title="পজ" aria-label="Pause Game">⏸️</button>
+          </div>
+        </div>
+
+        <!-- Active Buffs Indicator (Shield, Wi-Fi Boost) -->
+        <div id="active-buffs" class="active-buffs-bar">
+          <div id="buff-shield" class="buff-badge hidden">
+            <span class="buff-icon">🛡️</span>
+            <span class="buff-name">ভাতের হাঁড়ি শিল্ড!</span>
+            <div class="buff-timer-bar"><div id="shield-timer-fill" class="timer-fill"></div></div>
+          </div>
+          <div id="buff-wifi" class="buff-badge hidden">
+            <span class="buff-icon">⚡</span>
+            <span class="buff-name">৫জি বুস্ট!</span>
+            <div class="buff-timer-bar"><div id="wifi-timer-fill" class="timer-fill"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Start Screen Overlay -->
+      <div id="start-screen" class="ui-layer overlay-screen">
+        <div class="dialog-box start-box">
+          <div class="comic-badge">হাস্যরসাত্মক দৌড়ের খেলা!</div>
+          <h1 class="game-title">
+            <span class="title-main">TAMIM RUN</span>
+            <span class="title-sub">আম্মু ও উড়ন্ত জুতো! 🥿💥</span>
+          </h1>
+
+          <p class="story-tagline">
+            "পড়ালেখা বাদ দিয়ে মোবাইলে গেম খেলোস?!<br>
+            <strong>দাঁড়া তুই, আজকে তোরে জুতোর বাড়ি দিয়া সোজা বানামু!</strong>"
+          </p>
+
+          <!-- Character Outfit Customization -->
+          <div class="character-select-section">
+            <h3 class="section-title">তামিমের বেশভূষা বেছে নাও:</h3>
+            <div class="skin-selector">
+              <button class="skin-card active" data-skin="lungi">
+                <div class="skin-avatar">🩳</div>
+                <div class="skin-info">
+                  <span class="skin-name">লুঙ্গি মাস্টার</span>
+                  <small class="skin-desc">আসল আরামদায়ক পোশাক</small>
+                </div>
+              </button>
+              <button class="skin-card" data-skin="school">
+                <div class="skin-avatar">🎒</div>
+                <div class="skin-info">
+                  <span class="skin-name">স্কুল ছাত্র</span>
+                  <small class="skin-desc">ভারী ব্যাগের দৌড়</small>
+                </div>
+              </button>
+              <button class="skin-card" data-skin="gamer">
+                <div class="skin-avatar">🎧</div>
+                <div class="skin-info">
+                  <span class="skin-name">প্রো গেমার</span>
+                  <small class="skin-desc">আরজিবি পাওয়ার মোড</small>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Controls Quick Guide -->
+          <div class="controls-guide">
+            <div class="guide-item">
+              <span class="key-badge">Space / ⬆️</span>
+              <span>লাফ (Jump)</span>
+            </div>
+            <div class="guide-item">
+              <span class="key-badge">⬇️ Down</span>
+              <span>স্লাইড (Slide)</span>
+            </div>
+            <div class="guide-item">
+              <span class="key-badge">S / Shield</span>
+              <span>ভাতের ঢাকনা শিল্ড</span>
+            </div>
+          </div>
+
+          <!-- High Score & Start Button -->
+          <div class="start-actions">
+            <div class="high-score-display">
+              🏆 সর্বোচ্চ রেকর্ড: <strong id="start-high-score">0</strong> মিটার
+            </div>
+            <button id="btn-start" class="btn-primary pulse-btn">
+              <span>খেলা শুরু করো!</span>
+              <span class="btn-sub">START GAME 🚀</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pause Screen Overlay -->
+      <div id="pause-screen" class="ui-layer overlay-screen hidden">
+        <div class="dialog-box pause-box">
+          <h2 class="dialog-title">খেলা থামানো হয়েছে (PAUSED) ⏸️</h2>
+          <p class="pause-quote">আম্মু একটু পানি খাচ্ছেন... সুযোগে একটু দম নিয়ে নাও!</p>
+          <div class="dialog-buttons">
+            <button id="btn-resume" class="btn-primary">চালিয়ে যাও (Resume) ▶️</button>
+            <button id="btn-restart-pause" class="btn-secondary">নতুন করে শুরু (Restart) 🔄</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Over Screen Overlay -->
+      <div id="game-over-screen" class="ui-layer overlay-screen hidden">
+        <div class="dialog-box gameover-box">
+          <div class="gameover-header">
+            <span class="ko-icon">💥🥿😵</span>
+            <h2 class="gameover-title">ধরা পড়ে গেছো!</h2>
+            <div class="gameover-subtitle">আম্মুর জুতোর নিশানা ১০০% নির্ভুল!</div>
+          </div>
+
+          <!-- Funny Dynamic Roast Quote -->
+          <div class="roast-container">
+            <div class="roast-avatar">🧕💢</div>
+            <blockquote id="roast-text" class="roast-quote">
+              "সারাদিন ফোন টিপলে এই পরিণতিই হয়! এখন চলো পড়তে বসো!"
+            </blockquote>
+          </div>
+
+          <!-- Stats Board -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">মোট দূরত্ব</span>
+              <span id="final-distance" class="stat-value">0</span>
+              <span class="stat-unit">মিটার</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">সংগৃহীত টাকা/পয়েন্ট</span>
+              <span id="final-coins" class="stat-value">0</span>
+              <span class="stat-unit">কয়েন</span>
+            </div>
+            <div class="stat-card highlight">
+              <span class="stat-label">সর্বকালের রেকর্ড</span>
+              <span id="gameover-high-score" class="stat-value">0</span>
+              <span class="stat-unit">মিটার</span>
+            </div>
+          </div>
+
+          <div id="new-record-badge" class="new-record-ribbon hidden">
+            ⭐ নতুন রেকর্ড গড়েছো! অভিনন্দন! ⭐
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="gameover-actions">
+            <button id="btn-restart" class="btn-primary pulse-btn">
+              <span>আবার পালাও! 🏃‍♂️</span>
+              <small>Play Again (Space)</small>
+            </button>
+            <button id="btn-share" class="btn-secondary">
+              <span>শেয়ার করো 📋</span>
+              <small>Copy Brag Text</small>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- On-screen Mobile Controls (Visible on touch devices / responsive toggle) -->
+    <div id="mobile-controls" class="mobile-controls-bar">
+      <div class="mobile-controls-left">
+        <button id="touch-slide" class="touch-btn slide-touch-btn" aria-label="Slide">
+          <span class="touch-icon">⬇️</span>
+          <span class="touch-text">স্লাইড<br><small>SLIDE</small></span>
+        </button>
+      </div>
+
+      <div class="mobile-controls-center">
+        <button id="touch-shield" class="touch-btn shield-touch-btn" aria-label="Shield">
+          <span class="touch-icon">🛡️</span>
+          <span class="touch-text">শিল্ড<br><small>SHIELD</small></span>
+          <span id="shield-count-badge" class="badge-count">1</span>
+        </button>
+      </div>
+
+      <div class="mobile-controls-right">
+        <button id="touch-jump" class="touch-btn jump-touch-btn" aria-label="Jump">
+          <span class="touch-icon">⬆️</span>
+          <span class="touch-text">লাফ<br><small>JUMP</small></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Toast Notification for Share / Powerup -->
+    <div id="toast" class="toast-popup hidden">লিংক কপি হয়েছে! বন্ধুদের দেখাও!</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
